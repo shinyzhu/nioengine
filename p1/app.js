@@ -12,6 +12,7 @@
   var GPS_STALE_MS = 2000;
   var GPS_FADE_START_MS = 5000;
   var GPS_FADE_END_MS = 9000;
+  var OUTPUT_GAIN = 2.2;
 
   var PRESETS = {
     v8: {
@@ -221,6 +222,7 @@
     eqHigh: null,
     master: null,
     comp: null,
+    softClip: null,
     analyser: null,
     convolver: null,
 
@@ -592,6 +594,27 @@
     return buffer;
   }
 
+  function makeSoftClipCurve() {
+    var n = 4096;
+    var curve = new Float32Array(n);
+    var edge = 0.9;
+    var ceiling = 0.95;
+    var norm = 1 - Math.exp(-2.2);
+    for (var i = 0; i < n; i++) {
+      var x = (i / (n - 1)) * 2 - 1;
+      var ax = Math.abs(x);
+      var y;
+      if (ax <= edge) {
+        y = x;
+      } else {
+        var t = (ax - edge) / (1 - edge);
+        y = Math.sign(x) * (edge + (ceiling - edge) * (1 - Math.exp(-t * 2.2)) / norm);
+      }
+      curve[i] = y;
+    }
+    return curve;
+  }
+
   function updateLatency() {
     if (!state.ctx) {
       state.latency = { baseMs: null, outputMs: null, totalMs: null, rating: "unknown" };
@@ -668,7 +691,14 @@
     comp.release.value = 0.25;
 
     var master = ctx.createGain();
-    master.gain.value = state.volume * 0.8;
+    master.gain.value = state.volume * OUTPUT_GAIN;
+
+    // Transparent soft clip above 0.9. The app is mixed hot enough to sit
+    // alongside music playback; this catches peaks before the DAC without
+    // squashing the whole engine signal like a compressor would.
+    var softClip = ctx.createWaveShaper();
+    softClip.curve = makeSoftClipCurve();
+    softClip.oversample = "4x";
 
     var analyser = ctx.createAnalyser();
     analyser.fftSize = 4096;
@@ -692,7 +722,8 @@
     eqHigh.connect(dry);
     dry.connect(comp);
     comp.connect(master);
-    master.connect(analyser);
+    master.connect(softClip);
+    softClip.connect(analyser);
     analyser.connect(ctx.destination);
 
     state.eqLow = eqLow;
@@ -700,6 +731,7 @@
     state.eqHigh = eqHigh;
     state.comp = comp;
     state.master = master;
+    state.softClip = softClip;
     state.analyser = analyser;
     state.convolver = conv;
 
@@ -2521,7 +2553,7 @@
     if (els.volRange) els.volRange.value = String(Math.round(state.volume * 100));
     setText(els.volOut, Math.round(state.volume * 100) + "%");
     if (state.master && state.ctx) {
-      state.master.gain.setTargetAtTime(state.volume * 0.8, state.ctx.currentTime, 0.03);
+      state.master.gain.setTargetAtTime(state.volume * OUTPUT_GAIN, state.ctx.currentTime, 0.03);
     }
   }
 
