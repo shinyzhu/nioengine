@@ -35,30 +35,34 @@
       <aside class="left-panel">
         <div class="section-label" data-i18n="panel.mode">驾驶模式</div>
         <div class="mode-list" id="modeList">
-          <button class="mode-btn" type="button" data-mode="neutral">
-            <span data-i18n="mode.neutral">空挡</span>
-            <small data-i18n="mode.neutralHint">轰油门</small>
-          </button>
-          <button class="mode-btn" type="button" data-mode="cruise">
-            <span data-i18n="mode.cruise">巡航</span>
-            <small data-i18n="mode.cruiseHint">自动 80 km/h</small>
-          </button>
-          <button class="mode-btn" type="button" data-mode="manual">
-            <span data-i18n="mode.manual">手动</span>
-            <small data-i18n="mode.manualHint">自己踩</small>
-          </button>
-          <button class="mode-btn" type="button" data-mode="demo">
-            <span data-i18n="mode.demo">演示</span>
-            <small data-i18n="mode.demoHint">自动换挡</small>
-          </button>
-          <button class="mode-btn" type="button" data-mode="gps">
+          <button class="mode-btn mode-primary" type="button" data-mode="gps">
             <span data-i18n="mode.gps">GPS</span>
             <small data-i18n="mode.gpsHint">真实车速</small>
           </button>
+          <button class="mode-btn mode-primary" type="button" data-mode="demo">
+            <span data-i18n="mode.demo">演示</span>
+            <small data-i18n="mode.demoHint">解锁更多模式</small>
+          </button>
+          <div id="advancedModes" class="mode-advanced" hidden>
+            <div class="section-label mode-advanced-label" data-i18n="panel.advanced">更多模式</div>
+            <button class="mode-btn" type="button" data-mode="neutral">
+              <span data-i18n="mode.neutral">空挡</span>
+              <small data-i18n="mode.neutralHint">轰油门</small>
+            </button>
+            <button class="mode-btn" type="button" data-mode="cruise">
+              <span data-i18n="mode.cruise">巡航</span>
+              <small data-i18n="mode.cruiseHint">自动 80 km/h</small>
+            </button>
+            <button class="mode-btn" type="button" data-mode="manual">
+              <span data-i18n="mode.manual">手动</span>
+              <small data-i18n="mode.manualHint">自己踩</small>
+            </button>
+          </div>
         </div>
+        <p id="modeUnlock" class="mode-unlock" data-i18n="mode.unlock">进入演示后解锁空挡 / 巡航 / 手动</p>
 
         <div class="engine-actions">
-          <button id="startBtn" class="btn primary wide" type="button" data-i18n="engine.start">启动发动机</button>
+          <button id="startBtn" class="btn primary wide ignition" type="button" data-i18n="engine.startGps">启动 GPS 声浪</button>
           <button id="stopBtn" class="btn danger wide" type="button" data-i18n="engine.stop" hidden>熄火</button>
         </div>
 
@@ -104,6 +108,37 @@
           </div>
           <div class="shift-lights" id="shiftLights" aria-hidden="true">
             <i></i><i></i><i></i><i></i><i></i><i></i>
+          </div>
+        </div>
+
+        <div class="aux-gauges" aria-label="Auxiliary gauges">
+          <div class="mini-gauge" id="powerGauge" style="--v: 0">
+            <div class="mini-core">
+              <span class="mini-label" data-i18n="gauge.power">POWER</span>
+              <strong id="powerVal">0</strong>
+              <small>kW</small>
+            </div>
+          </div>
+          <div class="mini-gauge" id="torqueGauge" style="--v: 0">
+            <div class="mini-core">
+              <span class="mini-label" data-i18n="gauge.torque">TORQUE</span>
+              <strong id="torqueVal">0</strong>
+              <small>Nm</small>
+            </div>
+          </div>
+          <div class="mini-gauge" id="gpsGauge" style="--v: 0">
+            <div class="mini-core">
+              <span class="mini-label" data-i18n="gauge.gps">GPS</span>
+              <strong id="gpsGaugeVal">—</strong>
+              <small id="gpsGaugeSub">SIM</small>
+            </div>
+          </div>
+          <div class="mini-gauge" id="gGauge" style="--v: 0">
+            <div class="mini-core">
+              <span class="mini-label" data-i18n="gauge.g">G</span>
+              <strong id="gVal">0.0</strong>
+              <small>G</small>
+            </div>
           </div>
         </div>
 
@@ -168,9 +203,11 @@
       <div class="preset-cards" id="presetCards"></div>
 
       <div class="overlay-actions">
-        <button id="overlayStart" class="btn primary" type="button" data-i18n="overlay.start">启动发动机</button>
-        <button id="overlayGps" class="btn ghost" type="button" data-i18n="overlay.gps">GPS 驱动</button>
-        <button id="overlayDemo" class="btn ghost" type="button" data-i18n="overlay.demo">一键演示</button>
+        <button id="overlayStart" class="btn primary overlay-start" type="button">
+          <span data-i18n="overlay.startGps">启动 GPS 声浪</span>
+          <small data-i18n="overlay.startGpsSub">默认 GPS · 需要定位权限</small>
+        </button>
+        <button id="overlayDemo" class="btn ghost overlay-demo" type="button" data-i18n="overlay.demo">演示模式</button>
       </div>
 
       <p class="overlay-note" data-i18n="overlay.safety">请在驻车或由乘客操作时使用；行车中请勿注视屏幕。模拟声浪不改变车辆状态。</p>

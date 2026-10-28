@@ -10,6 +10,7 @@
       "ui.volume": "音量",
 
       "panel.mode": "驾驶模式",
+      "panel.advanced": "更多模式",
       "panel.controls": "控制",
 
       "mode.neutral": "空挡",
@@ -19,11 +20,13 @@
       "mode.manual": "手动",
       "mode.manualHint": "自己踩",
       "mode.demo": "演示",
-      "mode.demoHint": "自动换挡",
+      "mode.demoHint": "解锁更多模式",
       "mode.gps": "GPS",
       "mode.gpsHint": "真实车速",
+      "mode.unlock": "进入演示后解锁空挡 / 巡航 / 手动",
 
       "engine.start": "启动发动机",
+      "engine.startGps": "启动 GPS 声浪",
       "engine.stop": "熄火",
       "engine.panic": "■ 停止",
       "engine.off": "未启动",
@@ -77,13 +80,15 @@
 
       "overlay.eyebrow": "P1 · ENGINE SOUND",
       "overlay.title": "让车机发出属于你的声浪",
-      "overlay.body": "五种发动机、虚拟驾驶、自动换挡；GPS 模式会请求定位权限，用真实车速驱动声浪。默认不上传任何内容。",
+      "overlay.body": "默认 GPS 驱动：用真实车速 + 加速度驱动声浪。进入演示模式可解锁空挡 / 巡航 / 手动；定位权限按需请求，默认不上传任何内容。",
       "overlay.choose": "选择声浪",
       "overlay.start": "启动发动机",
+      "overlay.startGps": "启动 GPS 声浪",
+      "overlay.startGpsSub": "默认 GPS · 需要定位权限",
       "overlay.gps": "GPS 驱动",
-      "overlay.demo": "一键演示",
+      "overlay.demo": "演示模式",
       "overlay.safety": "请在驻车或由乘客操作时使用；行车中请勿注视屏幕。模拟声浪不改变车辆状态。",
-      "overlay.foot": "虚拟 / GPS 车速 · 仅用于声浪体验",
+      "overlay.foot": "GPS 默认 · 演示模式解锁更多驾驶模式",
 
       "preset.v8.name": "V8 6.2",
       "preset.v8.desc": "十字曲轴 · 低转轰鸣 · 高转怒吼",
@@ -106,6 +111,7 @@
       "toast.startFirst": "请先启动发动机",
       "toast.presetLocked": "运行中不能切换声浪，请先熄火",
       "toast.demo": "演示模式",
+      "toast.demoUnlock": "演示模式 · 已解锁更多驾驶模式",
       "toast.cruise": "巡航模式",
       "toast.manual": "手动模式",
       "toast.neutral": "空挡",
@@ -149,6 +155,11 @@
       "gps.intervalValue": "{interval} ms",
       "gps.ageValue": "{age} s 前",
 
+      "gauge.power": "POWER",
+      "gauge.torque": "TORQUE",
+      "gauge.gps": "GPS",
+      "gauge.g": "G",
+
       "diag.title": "音频诊断",
       "diag.copy": "复制诊断 JSON",
       "diag.note": "延迟为浏览器上报值，不是声学实测；最终以听感为准。",
@@ -187,6 +198,7 @@
       "ui.volume": "Volume",
 
       "panel.mode": "Drive mode",
+      "panel.advanced": "More modes",
       "panel.controls": "Controls",
 
       "mode.neutral": "Neutral",
@@ -196,11 +208,13 @@
       "mode.manual": "Manual",
       "mode.manualHint": "Pedals",
       "mode.demo": "Demo",
-      "mode.demoHint": "Auto shifts",
+      "mode.demoHint": "Unlocks more modes",
       "mode.gps": "GPS",
       "mode.gpsHint": "Live speed",
+      "mode.unlock": "Enter Demo to unlock Neutral / Cruise / Manual",
 
       "engine.start": "Start engine",
+      "engine.startGps": "Start GPS sound",
       "engine.stop": "Stop engine",
       "engine.panic": "■ Stop",
       "engine.off": "Engine off",
@@ -254,13 +268,15 @@
 
       "overlay.eyebrow": "P1 · ENGINE SOUND",
       "overlay.title": "Give the cockpit a voice",
-      "overlay.body": "Five engines, a virtual drivetrain and automatic shifts. GPS mode requests location to drive the sound with real speed; nothing is uploaded.",
+      "overlay.body": "GPS drive by default: real speed and acceleration drive the sound. Demo mode unlocks Neutral / Cruise / Manual. Location is requested only as needed and is never uploaded.",
       "overlay.choose": "Choose a sound",
       "overlay.start": "Start engine",
+      "overlay.startGps": "Start GPS sound",
+      "overlay.startGpsSub": "GPS by default · location permission required",
       "overlay.gps": "GPS drive",
-      "overlay.demo": "Play demo",
+      "overlay.demo": "Demo mode",
       "overlay.safety": "Use while parked or with a passenger operating it. Do not watch the screen while driving. The soundscape does not change the vehicle.",
-      "overlay.foot": "Virtual / GPS speed · sound experience only",
+      "overlay.foot": "GPS by default · Demo unlocks more drive modes",
 
       "preset.v8.name": "V8 6.2",
       "preset.v8.desc": "Cross-plane · deep idle · screaming top end",
@@ -283,6 +299,7 @@
       "toast.startFirst": "Start the engine first",
       "toast.presetLocked": "Stop the engine before changing the sound",
       "toast.demo": "Demo mode",
+      "toast.demoUnlock": "Demo mode · more drive modes unlocked",
       "toast.cruise": "Cruise mode",
       "toast.manual": "Manual mode",
       "toast.neutral": "Neutral",
@@ -325,6 +342,11 @@
       "gps.accuracyValue": "±{accuracy} m",
       "gps.intervalValue": "{interval} ms",
       "gps.ageValue": "{age} s ago",
+
+      "gauge.power": "POWER",
+      "gauge.torque": "TORQUE",
+      "gauge.gps": "GPS",
+      "gauge.g": "G",
 
       "diag.title": "Audio diagnostics",
       "diag.copy": "Copy diagnostics JSON",

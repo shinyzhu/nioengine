@@ -259,6 +259,7 @@
       brake: 0,
       load: 0,
       boost: 0,
+      accel: 0,
       shiftTimer: 0,
       shiftCooldown: 0,
       limiterCut: false,
@@ -300,6 +301,7 @@
     fullscreen: false,
 
     overlay: true,
+    modesExpanded: false,
     diagOpen: false,
     ui: { throttleHeld: false, brakeHeld: false },
     displayRpm: 0,
@@ -960,6 +962,7 @@
     updateDisplay();
     showToast(t("toast.workletInit"), 1600);
     requestWakeLock(true);
+    setModesExpanded(mode === "demo" || mode === "neutral" || mode === "cruise" || mode === "manual");
 
     // Start the GPS watch before the first await so the click's user
     // activation is still valid when the location permission prompt appears.
@@ -1001,6 +1004,7 @@
     state.drive.brake = 0;
     state.drive.load = 0;
     state.drive.boost = 0;
+    state.drive.accel = 0;
     state.drive.shiftTimer = 0;
     state.drive.shiftCooldown = 0;
     state.drive.limiterCut = false;
@@ -1047,6 +1051,7 @@
   function stopEngine() {
     if (state.engine === "off" || state.engine === "stopping") return;
     stopGps(true);
+    setModesExpanded(false);
     state.engine = "stopping";
     state.timers.stop = 0.9;
     state.timers.start = 0;
@@ -1093,6 +1098,7 @@
         state.drive.brake = 0;
         state.drive.load = 0;
         state.drive.boost = 0;
+        state.drive.accel = 0;
         state.drive.shiftTimer = 0;
         state.displayRpm = 0;
         state.telemetry.rpm = 0;
@@ -1397,6 +1403,7 @@
 
   function updateGpsDrive(dt, now) {
     var d = state.drive;
+    var prevSpeed = d.speed;
     var p = state.preset;
     var cfg = p.drive;
     var g = state.gps;
@@ -1505,6 +1512,8 @@
       d.load *= fade;
       d.boost *= fade;
     }
+
+    d.accel = dt > 0 ? (d.speed - prevSpeed) / dt : 0;
   }
 
   function renderGpsUi() {
@@ -1563,6 +1572,54 @@
     }
   }
 
+  function setModesExpanded(expanded) {
+    state.modesExpanded = !!expanded;
+    if (els.advancedModes) els.advancedModes.hidden = !state.modesExpanded;
+    if (els.modeUnlock) els.modeUnlock.hidden = state.modesExpanded;
+  }
+
+  function setMiniGauge(el, value, color) {
+    if (!el) return;
+    el.style.setProperty("--v", String(clamp(value, 0, 100)));
+    if (color) el.style.setProperty("--gauge-color", color);
+  }
+
+  function updateAuxGauges() {
+    var d = state.drive;
+    var p = state.preset;
+    var cfg = p.drive;
+    var load = clamp(d.load, 0, 1);
+    var torque = cfg.torque * torqueCurve(d.rpm, cfg.torqueRpm) * load;
+    var power = Math.max(0, torque * d.rpm / 9549);
+    var powerMax = Math.max(1, cfg.torque * p.redline / 9549);
+    var torqueMax = Math.max(1, cfg.torque);
+
+    setMiniGauge(els.powerGauge, (power / powerMax) * 100, p.accent);
+    setText(els.powerVal, String(Math.round(power)));
+
+    setMiniGauge(els.torqueGauge, (torque / torqueMax) * 100, p.accent);
+    setText(els.torqueVal, String(Math.round(torque)));
+
+    var g = state.engine === "running" ? (d.accel || 0) : 0;
+    var gForce = g / 9.81;
+    var gColor = g >= 0 ? p.accent2 : "#4aa8ff";
+    setMiniGauge(els.gGauge, (Math.abs(g) / 3) * 100, gColor);
+    setText(els.gVal, (gForce >= 0 ? "+" : "") + gForce.toFixed(2));
+
+    if (state.mode === "gps" && state.engine === "running") {
+      var status = gpsStatusKey();
+      var gpsColor = status === "active" ? "#38d39f" : (status === "weak" || status === "waiting") ? "#ffb020" : "#ff4d5e";
+      setMiniGauge(els.gpsGauge, clamp(state.gps.confidence, 0, 1) * 100, gpsColor);
+      setText(els.gpsGaugeVal, state.gps.accuracy === null ? "—" : state.gps.accuracy.toFixed(1));
+      setText(els.gpsGaugeSub, "m");
+      if (els.gpsGauge) els.gpsGauge.style.setProperty("--gauge-color", gpsColor);
+    } else {
+      setMiniGauge(els.gpsGauge, 0, "#4aa8ff");
+      setText(els.gpsGaugeVal, "SIM");
+      setText(els.gpsGaugeSub, "GPS");
+    }
+  }
+
   function autoTargets(now, dt) {
     var d = state.drive;
     var targetSpeed = 0;
@@ -1600,6 +1657,7 @@
     var d = state.drive;
     var p = state.preset;
     var cfg = p.drive;
+    var prevSpeed = d.speed;
     var targetThrottle = 0;
     var targetBrake = 0;
 
@@ -1698,6 +1756,8 @@
         d.rpm += (p.idle - d.rpm) * (1 - Math.exp(-dt / 0.15));
       }
     }
+
+    d.accel = dt > 0 ? (d.speed - prevSpeed) / dt : 0;
   }
 
   function updateIdle(dt) {
@@ -1715,6 +1775,7 @@
       d.speed = 0;
       d.load = 0;
       d.boost *= 1 - Math.min(1, dt * 2);
+      d.accel = 0;
     }
   }
 
@@ -1732,6 +1793,7 @@
       return;
     }
 
+    var wasExpanded = state.modesExpanded;
     if (mode !== "gps" && state.gps.watching) stopGps(true);
 
     state.mode = mode;
@@ -1752,10 +1814,15 @@
       state.drive.gear = gearForSpeed(state.drive.speed);
       if (state.drive.speed < 0.5) state.drive.gear = 1;
     }
-    if (mode === "demo") state.drive.demoStart = performance.now();
+    if (mode === "demo") {
+      state.drive.demoStart = performance.now();
+      setModesExpanded(true);
+    } else if (mode === "neutral" || mode === "cruise" || mode === "manual") {
+      setModesExpanded(true);
+    }
 
     if (!silent) {
-      showToast(t("toast." + mode), 2000);
+      showToast(t(mode === "demo" && !wasExpanded ? "toast.demoUnlock" : "toast." + mode), 2000);
     }
     updateDisplay();
   }
@@ -1981,6 +2048,7 @@
     if (els.hint) els.hint.textContent = t(hint);
 
     renderGpsUi();
+    updateAuxGauges();
     updateAudioStatus();
   }
 
@@ -2017,7 +2085,31 @@
     var redFrac = clamp(p.redline / maxRpm, 0, 1);
     var rpmFrac = clamp(state.displayRpm / maxRpm, 0, 1);
 
+    // Outer speed ring: a second, quieter scale around the tach.
+    var topSpeed = p.drive.topKmh || 300;
+    var speedFrac = clamp(Math.abs(state.drive.speed * 3.6) / topSpeed, 0, 1);
+
     ctx.lineCap = "round";
+    ctx.lineWidth = Math.max(1.2, radius * 0.012);
+    ctx.strokeStyle = "rgba(255,255,255,0.07)";
+    ctx.beginPath();
+    ctx.arc(cx, cy, radius * 0.955, start, start + sweep);
+    ctx.stroke();
+    if (speedFrac > 0.001) {
+      ctx.strokeStyle = p.accent2;
+      ctx.shadowBlur = 10;
+      ctx.shadowColor = p.accent2;
+      ctx.beginPath();
+      ctx.arc(cx, cy, radius * 0.955, start, start + sweep * speedFrac);
+      ctx.stroke();
+      var sa = start + sweep * speedFrac;
+      ctx.fillStyle = p.accent2;
+      ctx.beginPath();
+      ctx.arc(cx + Math.cos(sa) * radius * 0.955, cy + Math.sin(sa) * radius * 0.955, radius * 0.013, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.shadowBlur = 0;
+    }
+
     ctx.lineWidth = radius * 0.075;
     ctx.strokeStyle = "rgba(255,255,255,0.075)";
     ctx.beginPath();
@@ -2289,7 +2381,6 @@
 
   function updateOverlayButtons() {
     if (els.overlayStart) els.overlayStart.disabled = state.busy;
-    if (els.overlayGps) els.overlayGps.disabled = state.busy;
     if (els.overlayDemo) els.overlayDemo.disabled = state.busy;
   }
 
@@ -2306,7 +2397,6 @@
     els = {
       startOverlay: byId("startOverlay"),
       overlayStart: byId("overlayStart"),
-      overlayGps: byId("overlayGps"),
       overlayDemo: byId("overlayDemo"),
       overlayVersion: byId("overlayVersion"),
       presetCards: byId("presetCards"),
@@ -2314,6 +2404,8 @@
       presetName: byId("presetName"),
       engineState: byId("engineState"),
       modeList: byId("modeList"),
+      advancedModes: byId("advancedModes"),
+      modeUnlock: byId("modeUnlock"),
       startBtn: byId("startBtn"),
       stopBtn: byId("stopBtn"),
       panicBtn: byId("panicBtn"),
@@ -2351,6 +2443,15 @@
       boostBar: byId("boostBar"),
       boostRow: byId("boostRow"),
       boostStat: byId("boostStat"),
+      powerGauge: byId("powerGauge"),
+      powerVal: byId("powerVal"),
+      torqueGauge: byId("torqueGauge"),
+      torqueVal: byId("torqueVal"),
+      gpsGauge: byId("gpsGauge"),
+      gpsGaugeVal: byId("gpsGaugeVal"),
+      gpsGaugeSub: byId("gpsGaugeSub"),
+      gGauge: byId("gGauge"),
+      gVal: byId("gVal"),
       throttlePedal: byId("throttlePedal"),
       brakePedal: byId("brakePedal"),
       throttleFill: null,
@@ -2376,10 +2477,9 @@
   }
 
   function setupEvents() {
-    if (els.overlayStart) els.overlayStart.addEventListener("click", function () { startEngine("neutral"); });
-    if (els.overlayGps) els.overlayGps.addEventListener("click", function () { startEngine("gps"); });
+    if (els.overlayStart) els.overlayStart.addEventListener("click", function () { startEngine("gps"); });
     if (els.overlayDemo) els.overlayDemo.addEventListener("click", function () { startEngine("demo"); });
-    if (els.startBtn) els.startBtn.addEventListener("click", function () { startEngine("neutral"); });
+    if (els.startBtn) els.startBtn.addEventListener("click", function () { startEngine("gps"); });
     if (els.stopBtn) els.stopBtn.addEventListener("click", stopEngine);
     if (els.panicBtn) els.panicBtn.addEventListener("click", stopEngine);
 
@@ -2600,6 +2700,7 @@
   function init() {
     cacheElements();
     restoreSettings();
+    setModesExpanded(false);
     applyI18n();
     updateLangButtons();
     setVolume(state.volume);
@@ -2634,7 +2735,7 @@
     var params = new URLSearchParams(window.location.search);
     var auto = params.get("autostart");
     if (auto) {
-      var mode = auto === "demo" ? "demo" : auto === "cruise" ? "cruise" : auto === "manual" ? "manual" : auto === "gps" ? "gps" : "neutral";
+      var mode = auto === "demo" ? "demo" : auto === "cruise" ? "cruise" : auto === "manual" ? "manual" : auto === "neutral" ? "neutral" : "gps";
       setTimeout(function () { startEngine(mode); }, 250);
     }
   }
