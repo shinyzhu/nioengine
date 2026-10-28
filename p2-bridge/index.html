@@ -1,0 +1,159 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#05080c">
+  <meta name="color-scheme" content="dark">
+  <meta name="description" content="Nioengine P2.2 — car head-unit JS Bridge vehicle data probe">
+  <title>Engine Sound Lab · Bridge P2.2</title>
+  <!-- INLINE_STYLES -->
+</head>
+<body>
+  <div class="app">
+    <header class="topbar">
+      <div class="brand">NIO<span>·</span>BRIDGE <em>P2.2</em></div>
+      <div class="top-actions">
+        <span id="secureBadge" class="pill neutral">—</span>
+        <a class="icon-btn" href="/sensors/">传感器</a>
+        <a class="icon-btn" href="/">P1</a>
+      </div>
+    </header>
+
+    <div class="notice" role="note">
+      <strong>安全提示</strong>
+      <span>请由乘客操作；行车中不要注视屏幕。本页只做<b>只读探测</b>，不会主动调用 set / lock / start / stop 等控制方法，也不会上传任何数据。</span>
+    </div>
+
+    <section class="hero">
+      <div class="hero-copy">
+        <div class="eyebrow">P2.2 · JS BRIDGE / VEHICLE DATA</div>
+        <h1>车机有没有把<br>行车数据暴露给网页？</h1>
+        <p class="lede">这个页面只扫描 WebView 注入的 JS Bridge、Android 接口、WKWebView handler 和常见 NIO / native 全局对象；调用时只尝试只读的 get* 方法，结果保存在本机，可导出 JSON。</p>
+        <div class="hero-actions">
+          <button id="probeBtn" class="btn primary" type="button">开始只读探测</button>
+          <button id="rescanBtn" class="btn" type="button">重新扫描</button>
+          <button id="exportBtn" class="btn" type="button" disabled>导出 JSON</button>
+        </div>
+        <div id="statusLine" class="status-line" role="status" aria-live="polite">准备就绪</div>
+      </div>
+
+      <div id="verdict" class="verdict idle">
+        <span class="verdict-kicker">VERDICT</span>
+        <strong id="verdictTitle">等待探测</strong>
+        <p id="verdictBody">先扫描桥；只有你点“开始只读探测”后，页面才会尝试调用安全的 get* 方法。</p>
+      </div>
+    </section>
+
+    <div class="columns">
+      <div class="col">
+        <section class="card" aria-labelledby="envTitle">
+          <header class="card-head">
+            <h2 id="envTitle">环境</h2>
+            <span id="envBadge" class="pill neutral">—</span>
+          </header>
+          <div id="envRows" class="rows"></div>
+        </section>
+
+        <section class="card" aria-labelledby="bridgeTitle">
+          <header class="card-head">
+            <h2 id="bridgeTitle">发现的桥</h2>
+            <span id="bridgeBadge" class="pill neutral">0</span>
+          </header>
+          <p class="hint">只枚举对象、方法和属性，不在这里调用任何桥。</p>
+          <div id="bridgeList" class="bridge-list"></div>
+          <div id="bridgeEmpty" class="empty">尚未扫描。</div>
+        </section>
+      </div>
+
+      <div class="col">
+        <section class="card" aria-labelledby="probeTitle">
+          <header class="card-head">
+            <h2 id="probeTitle">只读探测</h2>
+            <span id="probeBadge" class="pill neutral">—</span>
+          </header>
+          <p class="hint">自动调用：命名以 <code>get / read / query / fetch</code> 开头、包含车辆语义且不需要参数的方法。不会调用 setter。</p>
+          <label class="check"><input id="genericToggle" type="checkbox" checked> 同时尝试通用 <code>call()</code> / <code>invoke()</code>，只传 get* 方法名</label>
+          <div id="callList" class="call-list"></div>
+          <div id="callEmpty" class="empty">尚未开始读取。</div>
+
+          <h3 class="subhead">解析到的行车字段</h3>
+          <div id="fieldList" class="field-list"></div>
+          <div id="fieldEmpty" class="empty">—</div>
+        </section>
+
+        <section class="card" aria-labelledby="messageTitle">
+          <header class="card-head">
+            <h2 id="messageTitle">Host 消息</h2>
+            <span id="messageBadge" class="pill neutral">0</span>
+          </header>
+          <p class="hint">页面会记录 <code>window.message</code> 和 <code>chrome.webview</code> 收到的原生消息，用于判断桥是否异步回调。</p>
+          <div id="messageList" class="message-list"></div>
+          <div id="messageEmpty" class="empty">—</div>
+        </section>
+      </div>
+    </div>
+
+    <section class="card" aria-labelledby="rawTitle">
+      <header class="card-head">
+        <h2 id="rawTitle">原始报告</h2>
+        <div class="head-actions">
+          <button id="copyBtn" class="btn small" type="button" disabled>复制</button>
+          <button id="downloadBtn" class="btn small" type="button" disabled>下载</button>
+        </div>
+      </header>
+      <pre id="rawReport" class="raw">尚未生成报告。</pre>
+    </section>
+
+    <details class="card manual" id="manualCard">
+      <summary>手动调用（高级）</summary>
+      <p class="hint">自动探测没有覆盖时使用。请自行确认方法只读；不要调用控制车辆的方法。参数按 JSON 数组填写。</p>
+      <div class="manual-grid">
+        <label>桥
+          <select id="manualBridge"></select>
+        </label>
+        <label>调用方式
+          <select id="manualMode">
+            <option value="direct">直接方法</option>
+            <option value="call">bridge.call(method, ...)</option>
+            <option value="invoke">bridge.invoke(method, ...)</option>
+            <option value="callHandler">bridge.callHandler(method, ...)</option>
+            <option value="exec">bridge.exec(method, ...)</option>
+            <option value="request">bridge.request(method, ...)</option>
+            <option value="postMessage">bridge.postMessage(...)</option>
+          </select>
+        </label>
+        <label>方法名
+          <input id="manualMethod" list="manualMethodList" value="getVehicleInfo" autocomplete="off" spellcheck="false">
+          <datalist id="manualMethodList"></datalist>
+        </label>
+        <label>参数 JSON
+          <input id="manualArgs" value="[]" autocomplete="off" spellcheck="false">
+        </label>
+        <label class="check manual-callback"><input id="manualCallback" type="checkbox"> 传入回调函数</label>
+        <button id="manualCall" class="btn primary" type="button">调用</button>
+      </div>
+      <div id="manualResult" class="manual-result empty">—</div>
+    </details>
+
+    <section class="card" aria-labelledby="logTitle">
+      <header class="card-head">
+        <h2 id="logTitle">事件日志</h2>
+        <button id="clearLogBtn" class="btn small" type="button">清空</button>
+      </header>
+      <ol id="logList" class="log"></ol>
+    </section>
+
+    <footer class="foot">
+      <span>P2.2 · JS Bridge Probe</span>
+      <span id="buildLine">—</span>
+      <span>本页无上传；报告可能包含 VIN、位置或车辆状态，导出前请确认。</span>
+    </footer>
+  </div>
+
+  <script>window.P2B_BUILD = { version: "__VERSION__", time: "__BUILD_TIME__" };</script>
+  <script>
+/*__APP__*/
+  </script>
+</body>
+</html>

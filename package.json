@@ -9,11 +9,13 @@
     "serve": "python3 -m http.server 4173 --directory dist",
     "build:p1": "node p1/build.mjs",
     "serve:p1": "python3 -m http.server 4174 --directory p1/dist",
-    "build:all": "npm run build:p1 && npm run build && npm run build:p2 && node scripts/assemble.mjs",
+    "build:all": "npm run build:p1 && npm run build && npm run build:p2 && npm run build:p2bridge && node scripts/assemble.mjs",
     "preview": "wrangler dev",
     "deploy": "wrangler deploy",
     "build:p2": "node p2-probe/build.mjs",
-    "serve:p2": "python3 -m http.server 4177 --directory p2-probe/dist"
+    "serve:p2": "python3 -m http.server 4177 --directory p2-probe/dist",
+    "build:p2bridge": "node p2-bridge/build.mjs",
+    "serve:p2bridge": "python3 -m http.server 4178 --directory p2-bridge/dist"
   },
   "devDependencies": {
     "wrangler": "^4.0.0"

@@ -1,9 +1,10 @@
 # nioengine · 车机模拟声浪
 
-仓库包含三个单文件车机 Web 应用：
+仓库包含四个单文件车机 Web 应用：
 
 - **P1 声浪应用（当前，0.7.0）**：默认 GPS 驱动，演示模式解锁空挡/巡航/手动；6 种发动机、RPM/速度双大表 + 中央档位 + 四联辅助表、自动换挡、涡轮/回火/限转、诊断面板。
 - **P2.0 传感器探测（上车前）**：验证车机浏览器能否给出 GPS 速度、加速度和姿态；首轮结论是 GPS 可用、IMU 不可用。
+- **P2.2 JS Bridge 验证（上车前）**：探测车机 WebView 是否注入 JS Bridge、Android 接口或 WKWebView handler，并只读尝试获取行车数据；结果在 `/bridge/`。
 - **P0 能力探测（保留）**：先用真车验证 HTTPS、AudioWorklet、延迟、音频焦点和 10 分钟长稳；结论见 [P0 真车结果](#p0-真车结果两次)。
 
 ---
@@ -57,6 +58,7 @@ Cloudflare 里连接 GitHub 后：
 - `/` → P1
 - `/p0/` → P0 能力探测
 - `/sensors/` → P2.0 传感器探测
+- `/bridge/` → P2.2 JS Bridge / 行车数据验证
 - `/engine-worklet.js`、`/p0/worklet.js` → Worklet 备用文件
 
 完整步骤（Git 连接、自定义域名、排错）见 **[docs/cloudflare-worker-deploy.md](docs/cloudflare-worker-deploy.md)**。
@@ -114,6 +116,29 @@ npm run serve:p2     # http://127.0.0.1:4177
 5. 停止并导出 JSON。
 
 详细说明、判定标准和报告字段见 **[p2-probe/README.md](p2-probe/README.md)**。
+
+---
+
+## P2.2 JS Bridge / 行车数据验证
+
+目标：确认车机浏览器有没有把行车数据通过 **JS Bridge** 暴露给网页。
+
+- 入口：`https://nioengine.com/bridge/`
+- 只做只读探测：不自动调用 set / lock / start / stop 等控制方法，不上传数据。
+- 发现范围：
+  - NIO / Native / Android / JSBridge 常见全局对象；
+  - `window.webkit.messageHandlers.*`、`window.chrome.webview`；
+  - `window.Android`、React Native / Flutter / Cordova / uni-app WebView 桥标记；
+  - 桥对象内部的 vehicle / car / telemetry / data 嵌套对象。
+- 自动尝试：无参数、车辆语义的 `get* / read* / query*` 方法；可选通用 `call()/invoke()`。
+- 手动调用：自动探测不中时，选择桥、方法、JSON 参数和回调，自行调用只读方法。
+- 结果：页面底部生成完整 JSON，包含环境、桥列表、方法、每次返回、解析字段和 Host 消息；支持复制/下载。
+
+详细说明见 **[p2-bridge/README.md](p2-bridge/README.md)**。
+
+![P2.2 JS Bridge mock](p2-bridge/docs/bridge-mock.png)
+
+> 上方截图是本地 mock，不代表真车结果。真车测试后把导出的 JSON 带回分析。
 
 ---
 
