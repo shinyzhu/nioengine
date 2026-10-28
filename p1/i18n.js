@@ -80,7 +80,7 @@
 
       "overlay.eyebrow": "P1 · ENGINE SOUND",
       "overlay.title": "让车机发出属于你的声浪",
-      "overlay.body": "默认 GPS 驱动：用真实车速 + 加速度驱动声浪。进入演示模式可解锁空挡 / 巡航 / 手动；定位权限按需请求，默认不上传任何内容。",
+      "overlay.body": "默认 GPS 驱动：用真实车速 + 加速度驱动声浪。六种发动机，进入演示模式可解锁空挡 / 巡航 / 手动；定位权限按需请求，默认不上传任何内容。",
       "overlay.choose": "选择声浪",
       "overlay.start": "启动发动机",
       "overlay.startGps": "启动 GPS 声浪",
@@ -105,6 +105,9 @@
       "preset.v12.name": "V12 6.5",
       "preset.v12.desc": "兰博基尼自吸 V12 · 高转咆哮 · 十二缸",
       "preset.v12.char": "LAMBORGHINI V12",
+      "preset.rotary.name": "13B 转子",
+      "preset.rotary.desc": "双转子 · 双涡轮 · 9000 rpm 高频嘶鸣",
+      "preset.rotary.char": "ROTARY TWIN-TURBO",
 
       "toast.engineStarted": "发动机已启动",
       "toast.engineStopped": "发动机已熄火",
@@ -270,7 +273,7 @@
 
       "overlay.eyebrow": "P1 · ENGINE SOUND",
       "overlay.title": "Give the cockpit a voice",
-      "overlay.body": "GPS drive by default: real speed and acceleration drive the sound. Demo mode unlocks Neutral / Cruise / Manual. Location is requested only as needed and is never uploaded.",
+      "overlay.body": "GPS drive by default: real speed and acceleration drive the sound. Six engines, and Demo mode unlocks Neutral / Cruise / Manual. Location is requested only as needed and is never uploaded.",
       "overlay.choose": "Choose a sound",
       "overlay.start": "Start engine",
       "overlay.startGps": "Start GPS sound",
@@ -295,6 +298,9 @@
       "preset.v12.name": "V12 6.5",
       "preset.v12.desc": "Lamborghini naturally aspirated V12 · high-rev howl",
       "preset.v12.char": "LAMBORGHINI V12",
+      "preset.rotary.name": "13B ROTARY",
+      "preset.rotary.desc": "2-rotor twin-turbo · 9000 rpm high-frequency scream",
+      "preset.rotary.char": "ROTARY TWIN-TURBO",
 
       "toast.engineStarted": "Engine started",
       "toast.engineStopped": "Engine stopped",

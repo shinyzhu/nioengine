@@ -204,6 +204,44 @@
         rolling: 0.012,
         topKmh: 350
       }
+    },
+    rotary: {
+      id: "rotary",
+      nameKey: "preset.rotary.name",
+      descKey: "preset.rotary.desc",
+      charKey: "preset.rotary.char",
+      accent: "#a66cff",
+      accent2: "#65f2ff",
+      cylinders: 4,
+      offsets: [0, 180, 360, 540],
+      banks: [0, 1, 0, 1],
+      idle: 900,
+      redline: 8000,
+      limiter: 8300,
+      maxRpm: 9000,
+      res: [[620, 1350, 2800], [680, 1500, 3100]],
+      decay: 0.022,
+      pulseGain: 0.095,
+      click: 0.16,
+      subRatio: 0.5,
+      subGain: 0.014,
+      intakeGain: 1.15,
+      crackle: 1.4,
+      turbo: true,
+      drive: {
+        gears: [3.4, 2.1, 1.5, 1.15, 0.9, 0.75],
+        final: 3.9,
+        mass: 1280,
+        wheelR: 0.31,
+        torque: 330,
+        torqueRpm: 4500,
+        shiftUp: 7800,
+        shiftDown: 2800,
+        launchRpm: 4000,
+        drag: 0.6,
+        rolling: 0.012,
+        topKmh: 260
+      }
     }
   };
 
@@ -513,7 +551,7 @@
 
   function buildPresetCards() {
     if (!els.presetCards) return;
-    var order = ["v8", "i4", "i6", "f1v10", "v12"];
+    var order = ["v8", "i4", "i6", "f1v10", "v12", "rotary"];
     var nodes = [];
     for (var i = 0; i < order.length; i++) {
       (function (id) {
