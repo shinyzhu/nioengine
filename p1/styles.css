@@ -209,7 +209,7 @@ body::before {
 
 .cockpit {
   display: grid;
-  grid-template-columns: 228px minmax(0, 1fr) 254px;
+  grid-template-columns: 214px minmax(0, 1fr) 234px;
   gap: 14px;
   min-height: 0;
 }
@@ -544,32 +544,198 @@ body::before {
   letter-spacing: 0.05em;
 }
 
-.tach-wrap {
+/* ---------- dual gauge stage ---------- */
+
+.dual-stage {
   position: relative;
-  display: flex;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
   align-items: center;
-  justify-content: center;
+  justify-items: center;
+  gap: 4px;
   flex: 1;
   min-height: 0;
   width: 100%;
 }
 
-#tach {
+.dual-stage::before {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  z-index: 0;
+  width: min(94%, 760px);
+  aspect-ratio: 1;
+  border: 1px dashed rgba(255, 255, 255, 0.055);
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(255,255,255,.025), transparent 62%);
+  box-shadow: inset 0 0 90px rgba(255,255,255,.025);
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+}
+
+.dual-stage::after {
+  content: "";
+  position: absolute;
+  top: 5%;
+  bottom: 5%;
+  left: 50%;
+  z-index: 0;
+  width: 1px;
+  background: linear-gradient(180deg, transparent, rgba(255,255,255,.08), transparent);
+  transform: translateX(-50%);
+  pointer-events: none;
+}
+
+.dual-stage > * {
+  position: relative;
+  z-index: 1;
+}
+
+.gauge-panel {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 0;
+  min-height: 0;
+  width: 100%;
+  height: 100%;
+}
+
+#tach,
+#speedGauge {
   display: block;
-  width: min(100%, 60vh);
+  width: min(100%, 46vh);
   max-width: 100%;
+  max-height: 100%;
   aspect-ratio: 1;
   height: auto;
 }
 
-.tach-center {
+.gauge-center {
   position: absolute;
   top: 50%;
   left: 50%;
-  width: 42%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 48%;
   text-align: center;
   transform: translate(-50%, -50%);
   pointer-events: none;
+}
+
+.gauge-kicker {
+  color: var(--dim);
+  font-size: clamp(.48rem, .7vw, .62rem);
+  font-weight: 850;
+  letter-spacing: .16em;
+  line-height: 1.1;
+}
+
+.gauge-center strong {
+  color: var(--text);
+  font-family: var(--mono);
+  font-size: clamp(1.35rem, 2.7vw, 2.4rem);
+  font-weight: 800;
+  line-height: .95;
+  font-variant-numeric: tabular-nums;
+  text-shadow: 0 0 24px var(--accent-glow);
+}
+
+.gauge-center small {
+  color: var(--muted);
+  font-size: .58rem;
+  line-height: 1.2;
+}
+
+.gauge-center em {
+  margin-top: 3px;
+  padding: 1px 5px;
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  color: var(--dim);
+  font-size: .48rem;
+  font-style: normal;
+  letter-spacing: .08em;
+}
+
+.gauge-center em.gps {
+  border-color: rgba(56,211,159,.35);
+  color: var(--ok);
+}
+
+.gear-column {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-width: 76px;
+  padding: 4px 2px;
+  text-align: center;
+}
+
+.gear-column .gear {
+  font-size: clamp(3.2rem, 6vw, 5rem);
+  line-height: .82;
+}
+
+.gear-column .gear-label {
+  margin-top: 5px;
+  font-size: .55rem;
+}
+
+.gear-column .mode-name {
+  margin-top: 3px;
+  font-size: .58rem;
+  white-space: nowrap;
+}
+
+.center-meta {
+  display: flex;
+  gap: 7px;
+  margin-top: 9px;
+  color: var(--dim);
+  font-family: var(--mono);
+  font-size: .48rem;
+  letter-spacing: .04em;
+  white-space: nowrap;
+}
+
+.center-meta b {
+  color: var(--text);
+  font-weight: 650;
+}
+
+.shift-rail {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  flex-shrink: 0;
+  min-height: 10px;
+}
+
+.shift-rail i {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.11);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.06);
+}
+
+.shift-rail i.on {
+  background: var(--accent-2);
+  box-shadow: 0 0 10px var(--accent-glow);
+}
+
+.shift-rail i.red.on {
+  background: var(--redline);
+  box-shadow: 0 0 12px rgba(255, 59, 77, 0.8);
 }
 
 .gear {
@@ -1218,7 +1384,7 @@ body::before {
 @media (max-width: 1050px) {
   .cockpit { grid-template-columns: 205px minmax(0, 1fr) 225px; gap: 10px; }
   .left-panel, .right-panel { padding: 12px; }
-  #tach { width: min(100%, 56vh); }
+  #tach, #speedGauge { width: min(100%, 56vh); }
   .preset-tabs button { padding: 0 11px; }
 }
 
@@ -1229,7 +1395,7 @@ body::before {
   .mode-btn { min-height: 44px; padding: 7px 10px; }
   .pedals { min-height: 168px; }
   .pedal { min-height: 155px; }
-  #tach { width: min(100%, 55vh); }
+  #tach, #speedGauge { width: min(100%, 55vh); }
   .cluster-stats > div { padding: 4px 8px; }
   .bottombar { min-height: 22px; }
 }
@@ -1243,7 +1409,7 @@ body::before {
   }
   .cluster { order: -1; }
   .cluster-stats { grid-template-columns: repeat(4, minmax(0, 1fr)); }
-  #tach { width: min(100%, 74vw); }
+  #tach, #speedGauge { width: min(100%, 74vw); }
   .left-panel { display: grid; grid-template-columns: 1fr 1fr; align-items: start; }
   .left-panel .section-label:first-child { grid-column: 1 / -1; }
   .mode-list { grid-column: 1 / -1; grid-template-columns: 1fr 1fr; }
@@ -1266,6 +1432,13 @@ body::before {
 
 @media (max-width: 560px) {
   .topbar { flex-wrap: wrap; }
+  .dual-stage { grid-template-columns: 1fr; gap: 0; }
+  .gauge-panel { height: auto; }
+  #tach, #speedGauge { width: min(100%, 62vw); }
+  .gear-column { min-width: 0; padding: 0 0 2px; }
+  .gear-column .gear { font-size: 3.6rem; }
+  .gear-column .gear-label { margin-top: 0; }
+  .center-meta { margin-top: 3px; }
   .preset-tabs { order: 3; width: 100%; justify-content: space-between; }
   .top-actions { margin-left: auto; }
   .cluster-stats { grid-template-columns: 1fr 1fr; }

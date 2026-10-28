@@ -98,16 +98,38 @@
           <span id="engineState" class="cluster-state">未启动</span>
         </div>
 
-        <div class="tach-wrap">
-          <canvas id="tach" aria-hidden="true"></canvas>
-          <div class="tach-center">
+        <div class="shift-rail" id="shiftLights" aria-hidden="true">
+          <i></i><i></i><i></i><i></i><i></i><i></i>
+        </div>
+
+        <div class="dual-stage">
+          <div class="gauge-panel">
+            <canvas id="tach" aria-hidden="true"></canvas>
+            <div class="gauge-center">
+              <span class="gauge-kicker" data-i18n="gauge.rpm">RPM</span>
+              <strong id="rpmText">0</strong>
+              <small>rpm</small>
+            </div>
+          </div>
+
+          <div class="gear-column">
             <div id="gear" class="gear">N</div>
             <div class="gear-label" data-i18n="dash.gear">档位</div>
-            <div class="speed"><strong id="speed">0</strong><span>km/h</span><em id="speedSource">SIM</em></div>
-            <div id="modeName" class="mode-name">空挡</div>
+            <div id="modeName" class="mode-name">GPS</div>
+            <div class="center-meta">
+              <span>THR <b id="throttleText">0</b>%</span>
+              <span>BST <b id="boostText">0</b>%</span>
+            </div>
           </div>
-          <div class="shift-lights" id="shiftLights" aria-hidden="true">
-            <i></i><i></i><i></i><i></i><i></i><i></i>
+
+          <div class="gauge-panel">
+            <canvas id="speedGauge" aria-hidden="true"></canvas>
+            <div class="gauge-center">
+              <span class="gauge-kicker" data-i18n="gauge.speed">SPEED</span>
+              <strong id="speed">0</strong>
+              <small>km/h</small>
+              <em id="speedSource">SIM</em>
+            </div>
           </div>
         </div>
 
@@ -142,12 +164,6 @@
           </div>
         </div>
 
-        <div class="cluster-stats">
-          <div><span data-i18n="dash.rpm">转速</span><strong id="rpmText">0</strong><small>rpm</small></div>
-          <div><span data-i18n="dash.speed">车速</span><strong id="speedText">0</strong><small>km/h</small></div>
-          <div><span data-i18n="dash.throttle">油门</span><strong id="throttleText">0</strong><small>%</small></div>
-          <div id="boostStat"><span data-i18n="dash.boost">涡轮</span><strong id="boostText">0</strong><small>%</small></div>
-        </div>
       </section>
 
       <aside class="right-panel">

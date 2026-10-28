@@ -552,7 +552,6 @@
     }
     if (els.overlayVersion) els.overlayVersion.textContent = "P1 · " + BUILD.version;
     if (els.boostRow) els.boostRow.hidden = !p.turbo;
-    if (els.boostStat) els.boostStat.hidden = !p.turbo;
     applyPresetCss();
   }
 
@@ -1956,7 +1955,6 @@
     setText(els.gear, gear);
     setText(els.gearText, gear);
     setText(els.speed, String(speedKmh));
-    setText(els.speedText, String(speedKmh));
     setText(els.rpmText, String(rpm));
     setText(els.throttleText, String(throttlePct));
     setText(els.boostText, String(boostPct));
@@ -1974,7 +1972,6 @@
     if (els.throttleFill) els.throttleFill.style.height = throttlePct + "%";
     if (els.brakeFill) els.brakeFill.style.height = brakePct + "%";
     if (els.boostRow) els.boostRow.hidden = !p.turbo;
-    if (els.boostStat) els.boostStat.hidden = !p.turbo;
 
     var shiftFrac = clamp((state.displayRpm - p.redline * 0.72) / (p.redline * 0.28), 0, 1);
     var activeLights = state.displayRpm >= p.redline ? shiftLightNodes.length : Math.floor(shiftFrac * shiftLightNodes.length);
@@ -2056,8 +2053,7 @@
   /* Tachometer                                                         */
   /* ------------------------------------------------------------------ */
 
-  function drawTach() {
-    var canvas = els.tach;
+  function drawGauge(canvas, kind) {
     if (!canvas) return;
     var cssW = canvas.clientWidth;
     var cssH = canvas.clientHeight;
@@ -2075,122 +2071,120 @@
     ctx.clearRect(0, 0, cssW, cssH);
 
     var p = state.preset;
+    var isRpm = kind === "rpm";
     var cx = cssW / 2;
     var cy = cssH / 2;
     var radius = Math.min(cssW, cssH) / 2 - 8;
     if (radius < 20) return;
     var start = Math.PI * 0.75;
     var sweep = Math.PI * 1.5;
-    var maxRpm = p.maxRpm;
-    var redFrac = clamp(p.redline / maxRpm, 0, 1);
-    var rpmFrac = clamp(state.displayRpm / maxRpm, 0, 1);
-
-    // Outer speed ring: a second, quieter scale around the tach.
-    var topSpeed = p.drive.topKmh || 300;
-    var speedFrac = clamp(Math.abs(state.drive.speed * 3.6) / topSpeed, 0, 1);
+    var max = isRpm ? p.maxRpm : p.drive.topKmh;
+    var value = isRpm ? clamp(state.displayRpm, 0, max) : clamp(state.drive.speed * 3.6, 0, max);
+    var redline = isRpm ? p.redline : max;
+    var redFrac = clamp(redline / max, 0, 1);
+    var valueFrac = clamp(value / max, 0, 1);
+    var color = isRpm ? p.accent : "#4aa8ff";
+    var dimColor = isRpm ? "rgba(255,255,255,0.075)" : "rgba(74,168,255,0.13)";
 
     ctx.lineCap = "round";
-    ctx.lineWidth = Math.max(1.2, radius * 0.012);
-    ctx.strokeStyle = "rgba(255,255,255,0.07)";
+
+    // Outer dial track.
+    ctx.lineWidth = radius * 0.062;
+    ctx.strokeStyle = dimColor;
     ctx.beginPath();
-    ctx.arc(cx, cy, radius * 0.955, start, start + sweep);
+    ctx.arc(cx, cy, radius * 0.86, start, start + sweep);
     ctx.stroke();
-    if (speedFrac > 0.001) {
-      ctx.strokeStyle = p.accent2;
-      ctx.shadowBlur = 10;
-      ctx.shadowColor = p.accent2;
+
+    // Red zone / top-speed zone.
+    if (isRpm) {
+      ctx.strokeStyle = "rgba(255,59,77,0.26)";
       ctx.beginPath();
-      ctx.arc(cx, cy, radius * 0.955, start, start + sweep * speedFrac);
+      ctx.arc(cx, cy, radius * 0.86, start + sweep * redFrac, start + sweep);
       ctx.stroke();
-      var sa = start + sweep * speedFrac;
-      ctx.fillStyle = p.accent2;
-      ctx.beginPath();
-      ctx.arc(cx + Math.cos(sa) * radius * 0.955, cy + Math.sin(sa) * radius * 0.955, radius * 0.013, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.shadowBlur = 0;
     }
 
-    ctx.lineWidth = radius * 0.075;
-    ctx.strokeStyle = "rgba(255,255,255,0.075)";
-    ctx.beginPath();
-    ctx.arc(cx, cy, radius * 0.85, start, start + sweep);
-    ctx.stroke();
-
-    ctx.strokeStyle = "rgba(255,59,77,0.22)";
-    ctx.beginPath();
-    ctx.arc(cx, cy, radius * 0.85, start + sweep * redFrac, start + sweep);
-    ctx.stroke();
-
-    if (rpmFrac > 0) {
-      var activeTo = Math.min(rpmFrac, redFrac);
-      ctx.strokeStyle = p.accent;
+    // Active dial.
+    var activeTo = isRpm ? Math.min(valueFrac, redFrac) : valueFrac;
+    if (activeTo > 0.001) {
+      ctx.strokeStyle = color;
       ctx.shadowBlur = 18;
-      ctx.shadowColor = p.accent;
+      ctx.shadowColor = color;
       ctx.beginPath();
-      ctx.arc(cx, cy, radius * 0.85, start, start + sweep * activeTo);
+      ctx.arc(cx, cy, radius * 0.86, start, start + sweep * activeTo);
       ctx.stroke();
-      if (rpmFrac > redFrac) {
+      if (isRpm && valueFrac > redFrac) {
         ctx.strokeStyle = "#ff3b4d";
         ctx.shadowColor = "#ff3b4d";
         ctx.beginPath();
-        ctx.arc(cx, cy, radius * 0.85, start + sweep * redFrac, start + sweep * rpmFrac);
+        ctx.arc(cx, cy, radius * 0.86, start + sweep * redFrac, start + sweep * valueFrac);
         ctx.stroke();
       }
       ctx.shadowBlur = 0;
     }
 
-    var labelStep = maxRpm <= 10000 ? 1000 : 2000;
-    var majorCount = Math.max(4, Math.round(maxRpm / labelStep));
-    var ticks = majorCount * 2;
+    var labelStep;
+    if (isRpm) labelStep = max <= 10000 ? 1000 : 2000;
+    else labelStep = max <= 300 ? 40 : 50;
+    var labelCount = Math.floor(max / labelStep);
+    var ticks = Math.max(4, labelCount) * 2;
+
     for (var i = 0; i <= ticks; i++) {
       var frac = i / ticks;
       var a = start + sweep * frac;
       var major = i % 2 === 0;
-      var inner = radius * (major ? 0.735 : 0.775);
+      var inner = radius * (major ? 0.73 : 0.775);
       var outer = radius * 0.83;
-      ctx.strokeStyle = major ? "rgba(255,255,255,0.58)" : "rgba(255,255,255,0.18)";
-      ctx.lineWidth = major ? 2 : 1;
+      ctx.strokeStyle = major
+        ? (isRpm && frac >= redFrac ? "rgba(255,107,120,.9)" : "rgba(220,232,244,.62)")
+        : "rgba(255,255,255,.17)";
+      ctx.lineWidth = major ? 1.8 : 1;
       ctx.beginPath();
       ctx.moveTo(cx + Math.cos(a) * inner, cy + Math.sin(a) * inner);
       ctx.lineTo(cx + Math.cos(a) * outer, cy + Math.sin(a) * outer);
       ctx.stroke();
 
       if (major) {
-        ctx.fillStyle = frac >= redFrac ? "#ff6b78" : "rgba(190,205,220,0.8)";
-        ctx.font = "600 " + (radius * 0.062).toFixed(1) + "px system-ui, sans-serif";
+        var labelValue = (i / 2) * labelStep;
+        var label = isRpm ? String(Math.round(labelValue / 1000)) : String(Math.round(labelValue));
+        ctx.fillStyle = isRpm && frac >= redFrac ? "#ff6b78" : "rgba(190,205,220,.78)";
+        ctx.font = "600 " + Math.max(8, radius * 0.072).toFixed(1) + "px system-ui, sans-serif";
         ctx.textAlign = "center";
         ctx.textBaseline = "middle";
-        var lr = radius * 0.64;
-        ctx.fillText(String(Math.round((i / 2) * labelStep / 1000)), cx + Math.cos(a) * lr, cy + Math.sin(a) * lr);
+        var lr = radius * 0.62;
+        ctx.fillText(label, cx + Math.cos(a) * lr, cy + Math.sin(a) * lr);
       }
     }
 
-    var na = start + sweep * rpmFrac;
-    ctx.strokeStyle = rpmFrac >= redFrac ? "#ff3b4d" : p.accent;
-    ctx.shadowBlur = 12;
-    ctx.shadowColor = rpmFrac >= redFrac ? "#ff3b4d" : p.accent;
-    ctx.lineWidth = Math.max(2, radius * 0.012);
+    // Needle.
+    var na = start + sweep * valueFrac;
+    var needleColor = isRpm && valueFrac >= redFrac ? "#ff3b4d" : color;
+    ctx.strokeStyle = needleColor;
+    ctx.shadowBlur = 14;
+    ctx.shadowColor = needleColor;
+    ctx.lineWidth = Math.max(2, radius * 0.014);
     ctx.beginPath();
-    ctx.moveTo(cx + Math.cos(na) * radius * 0.24, cy + Math.sin(na) * radius * 0.24);
+    ctx.moveTo(cx + Math.cos(na) * radius * 0.26, cy + Math.sin(na) * radius * 0.26);
     ctx.lineTo(cx + Math.cos(na) * radius * 0.8, cy + Math.sin(na) * radius * 0.8);
     ctx.stroke();
     ctx.shadowBlur = 0;
 
-    ctx.fillStyle = rpmFrac >= redFrac ? "#ff3b4d" : p.accent;
+    ctx.fillStyle = needleColor;
     ctx.beginPath();
     ctx.arc(cx + Math.cos(na) * radius * 0.8, cy + Math.sin(na) * radius * 0.8, radius * 0.018, 0, Math.PI * 2);
     ctx.fill();
 
-    ctx.fillStyle = "rgba(145,164,184,0.7)";
-    ctx.font = "600 " + (radius * 0.045).toFixed(1) + "px system-ui, sans-serif";
-    ctx.textAlign = "center";
-    ctx.textBaseline = "middle";
-    ctx.fillText("x1000 r/min", cx, cy + radius * 0.58);
+    // Small hub; the digital value is HTML on top.
+    ctx.strokeStyle = "rgba(255,255,255,.14)";
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.arc(cx, cy, radius * 0.085, 0, Math.PI * 2);
+    ctx.stroke();
   }
 
-  /* ------------------------------------------------------------------ */
-  /* Diagnostics                                                        */
-  /* ------------------------------------------------------------------ */
+  function drawTach() {
+    drawGauge(els.tach, "rpm");
+    drawGauge(els.speedGauge, "speed");
+  }
 
   function diagRow(label, value) {
     var node = document.createElement("div");
@@ -2428,10 +2422,10 @@
       volRange: byId("volRange"),
       volOut: byId("volOut"),
       tach: byId("tach"),
+      speedGauge: byId("speedGauge"),
       gear: byId("gear"),
       gearText: byId("gearText"),
       speed: byId("speed"),
-      speedText: byId("speedText"),
       rpmText: byId("rpmText"),
       throttleText: byId("throttleText"),
       boostText: byId("boostText"),
@@ -2442,7 +2436,6 @@
       brakeBar: byId("brakeBar"),
       boostBar: byId("boostBar"),
       boostRow: byId("boostRow"),
-      boostStat: byId("boostStat"),
       powerGauge: byId("powerGauge"),
       powerVal: byId("powerVal"),
       torqueGauge: byId("torqueGauge"),

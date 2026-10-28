@@ -155,6 +155,8 @@
       "gps.intervalValue": "{interval} ms",
       "gps.ageValue": "{age} s 前",
 
+      "gauge.rpm": "RPM",
+      "gauge.speed": "SPEED",
       "gauge.power": "POWER",
       "gauge.torque": "TORQUE",
       "gauge.gps": "GPS",
@@ -343,6 +345,8 @@
       "gps.intervalValue": "{interval} ms",
       "gps.ageValue": "{age} s ago",
 
+      "gauge.rpm": "RPM",
+      "gauge.speed": "SPEED",
       "gauge.power": "POWER",
       "gauge.torque": "TORQUE",
       "gauge.gps": "GPS",
