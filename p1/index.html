@@ -75,9 +75,11 @@
           <div class="gps-panel-speed">
             <strong id="gpsSpeed">—</strong>
             <small>km/h</small>
-            <span id="gpsAccuracy">—</span>
           </div>
-          <div id="gpsMeta" class="gps-meta">—</div>
+          <div id="gpsMeta" class="gps-meta">
+            <span id="gpsMetaLine1">—</span>
+            <span id="gpsMetaLine2"></span>
+          </div>
           <button id="gpsRetry" class="btn ghost small wide" type="button" data-i18n="gps.retry">重新连接 GPS</button>
         </div>
 
@@ -167,39 +169,33 @@
 
       </section>
 
-      <aside class="right-panel">
-        <div class="pedals">
-          <button id="brakePedal" class="pedal brake" type="button">
+      <section class="drive-dock" aria-label="Pedals and drive load">
+        <div class="dock-pedals">
+          <button id="brakePedal" class="pedal brake compact" type="button">
             <i class="fill"></i>
             <span data-i18n="pedal.brake">刹车</span>
             <small>BRAKE</small>
           </button>
-          <button id="throttlePedal" class="pedal throttle" type="button">
+          <button id="throttlePedal" class="pedal throttle compact" type="button">
             <i class="fill"></i>
             <span data-i18n="pedal.throttle">油门</span>
             <small>THROTTLE</small>
           </button>
         </div>
-        <div id="pedalHint" class="pedal-hint" data-i18n="pedal.hold">按住油门 / 刹车</div>
-
-        <div class="bars">
-          <div class="bar-row"><span data-i18n="dash.throttle">油门</span><div class="bar"><i id="throttleBar"></i></div><b id="throttlePct">0%</b></div>
-          <div class="bar-row"><span data-i18n="dash.brake">刹车</span><div class="bar"><i id="brakeBar"></i></div><b id="brakePct">0%</b></div>
-          <div class="bar-row" id="boostRow"><span data-i18n="dash.boost">涡轮</span><div class="bar"><i id="boostBar"></i></div><b id="boostPct">0%</b></div>
+        <div class="dock-bars">
+          <div class="bars">
+            <div class="bar-row"><span data-i18n="dash.throttle">油门</span><div class="bar"><i id="throttleBar"></i></div><b id="throttlePct">0%</b></div>
+            <div class="bar-row"><span data-i18n="dash.brake">刹车</span><div class="bar"><i id="brakeBar"></i></div><b id="brakePct">0%</b></div>
+            <div class="bar-row" id="boostRow"><span data-i18n="dash.boost">涡轮</span><div class="bar"><i id="boostBar"></i></div><b id="boostPct">0%</b></div>
+          </div>
+          <div id="pedalHint" class="pedal-hint" data-i18n="pedal.hold">按住油门 / 刹车</div>
         </div>
-
-        <div class="right-status">
-          <div><span data-i18n="dash.gear">档位</span><strong id="gearText">N</strong></div>
-          <div><span data-i18n="dash.mode">模式</span><strong id="modeText">空挡</strong></div>
-          <div><span data-i18n="dash.exhaust">排气</span><strong id="valveText">关</strong></div>
-        </div>
-      </aside>
+      </section>
     </main>
 
     <footer class="bottombar">
       <span id="audioStatus">音频未初始化</span>
       <span id="hint" class="hint" data-i18n="hint.off">点击启动发动机，开始模拟声浪</span>
-      <button id="panicBtn" class="btn small danger panic-inline" type="button" data-i18n="engine.panic" hidden>■ 停止</button>
       <span id="latencyBadge" class="badge">—</span>
     </footer>
   </div>

@@ -209,10 +209,13 @@ body::before {
 
 .cockpit {
   display: grid;
-  grid-template-columns: 214px minmax(0, 1fr) 234px;
-  gap: 14px;
+  grid-template-columns: 236px minmax(0, 1fr);
+  grid-template-rows: minmax(0, 1fr) auto;
+  gap: 12px 14px;
   min-height: 0;
 }
+.left-panel { grid-column: 1; grid-row: 1; }
+.cluster { grid-column: 2; grid-row: 1; }
 
 .left-panel,
 .right-panel {
@@ -388,11 +391,19 @@ body::before {
 }
 
 .gps-meta {
-  min-height: 1.4em;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  min-height: 2.7em;
   color: var(--dim);
   font-size: 0.62rem;
-  line-height: 1.45;
-  overflow-wrap: anywhere;
+  line-height: 1.4;
+}
+.gps-meta span {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .gps-panel .badge {
@@ -1083,6 +1094,68 @@ body::before {
   white-space: nowrap;
 }
 
+/* ---------- bottom drive dock ---------- */
+
+.drive-dock {
+  display: grid;
+  grid-column: 1 / -1;
+  grid-row: 2;
+  grid-template-columns: minmax(205px, 238px) minmax(0, 1fr);
+  gap: 12px;
+  align-items: center;
+  min-width: 0;
+  min-height: 84px;
+  padding: 8px 12px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: linear-gradient(180deg, rgba(14,22,31,.96), rgba(7,12,18,.98));
+  box-shadow: 0 14px 36px rgba(0,0,0,.24);
+}
+
+.dock-pedals {
+  display: grid;
+  grid-template-columns: 0.82fr 1.18fr;
+  gap: 7px;
+  min-width: 0;
+}
+
+.drive-dock .pedal {
+  height: 62px;
+  min-height: 62px;
+  padding: 5px 8px;
+  justify-content: center;
+  gap: 1px;
+  border-radius: 11px;
+}
+.drive-dock .pedal span { font-size: .76rem; letter-spacing: .03em; }
+.drive-dock .pedal small { font-size: .44rem; letter-spacing: .08em; }
+.drive-dock .pedal.auto::after { top: 4px; font-size: .44rem; }
+.drive-dock .pedal .fill { opacity: .42; }
+
+.dock-bars {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  min-width: 0;
+  gap: 3px;
+}
+.drive-dock .bars { gap: 3px; padding: 0; }
+.drive-dock .bar-row {
+  grid-template-columns: 34px minmax(0, 1fr) 36px;
+  gap: 6px;
+  font-size: .6rem;
+}
+.drive-dock .bar-row b { font-size: .61rem; }
+.drive-dock .bar { height: 5px; }
+.drive-dock .pedal-hint {
+  margin-top: 2px;
+  font-size: .56rem;
+  text-align: left;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
 /* ---------- bottom bar ---------- */
 
 .bottombar {
@@ -1338,15 +1411,6 @@ body::before {
   text-align: right;
 }
 
-/* ---------- floating ---------- */
-
-.panic-inline {
-  flex-shrink: 0;
-  min-height: 30px;
-  padding: 4px 12px;
-  border-radius: 8px;
-  font-size: 0.68rem;
-}
 
 .toast {
   position: fixed;
@@ -1382,7 +1446,7 @@ body::before {
 }
 
 @media (max-width: 1050px) {
-  .cockpit { grid-template-columns: 205px minmax(0, 1fr) 225px; gap: 10px; }
+  .cockpit { grid-template-columns: 214px minmax(0, 1fr); gap: 10px 12px; }
   .left-panel, .right-panel { padding: 12px; }
   #tach, #speedGauge { width: min(100%, 56vh); }
   .preset-tabs button { padding: 0 11px; }
@@ -1393,8 +1457,8 @@ body::before {
   .topbar { min-height: 40px; }
   .left-panel, .right-panel { padding: 11px; gap: 7px; }
   .mode-btn { min-height: 44px; padding: 7px 10px; }
-  .pedals { min-height: 168px; }
-  .pedal { min-height: 155px; }
+  .drive-dock { min-height: 74px; padding: 6px 10px; }
+  .drive-dock .pedal { height: 54px; min-height: 54px; }
   #tach, #speedGauge { width: min(100%, 55vh); }
   .cluster-stats > div { padding: 4px 8px; }
   .bottombar { min-height: 22px; }
@@ -1405,9 +1469,12 @@ body::before {
   .app { height: auto; min-height: 100dvh; grid-template-rows: auto auto auto; }
   .cockpit {
     grid-template-columns: 1fr;
+    grid-template-rows: auto;
     gap: 10px;
   }
-  .cluster { order: -1; }
+  .left-panel { grid-column: 1; grid-row: auto; }
+  .cluster { grid-column: 1; grid-row: auto; order: -1; }
+  .drive-dock { grid-column: 1; grid-row: auto; }
   .cluster-stats { grid-template-columns: repeat(4, minmax(0, 1fr)); }
   #tach, #speedGauge { width: min(100%, 74vw); }
   .left-panel { display: grid; grid-template-columns: 1fr 1fr; align-items: start; }
@@ -1445,6 +1512,9 @@ body::before {
   .aux-gauges { grid-template-columns: repeat(2, minmax(0, 1fr)); max-width: 260px; margin: 0 auto; }
   .mini-gauge { width: 82px; }
   .left-panel { grid-template-columns: 1fr; }
+  .drive-dock { grid-template-columns: 1fr; gap: 8px; }
+  .dock-pedals { max-width: 260px; }
+  .dock-bars { width: 100%; }
   .left-panel .section-label,
   .mode-list,
   .engine-actions,

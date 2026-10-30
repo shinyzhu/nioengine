@@ -1582,19 +1582,21 @@
         ? "—"
         : t("gps.accuracyValue", { accuracy: g.accuracy.toFixed(1) });
     }
-    if (els.gpsMeta) {
+    if (els.gpsMetaLine1 && els.gpsMetaLine2) {
       if (!g.lastFixAt) {
-        els.gpsMeta.textContent = g.error || t("gps.waiting");
+        els.gpsMetaLine1.textContent = g.error || t("gps.waiting");
+        els.gpsMetaLine2.textContent = "";
       } else {
         var age = performance.now() - g.lastFixAt;
         var source = g.source === "derived" ? t("gps.sourceDerived") : t("gps.sourceGps");
-        var meta = t("gps.meta", {
-          accuracy: g.accuracy === null ? "—" : t("gps.accuracyValue", { accuracy: g.accuracy.toFixed(1) }),
+        var accuracy = g.accuracy === null ? "—" : t("gps.accuracyValue", { accuracy: g.accuracy.toFixed(1) });
+        var line1 = t("gps.accuracyLine", { accuracy: accuracy });
+        if (age > GPS_STALE_MS) line1 += " · " + t("gps.ageValue", { age: (age / 1000).toFixed(1) });
+        els.gpsMetaLine1.textContent = line1;
+        els.gpsMetaLine2.textContent = t("gps.updateLine", {
           interval: g.intervalMs === null ? "—" : t("gps.intervalValue", { interval: Math.round(g.intervalMs) }),
           source: source
         });
-        if (age > GPS_STALE_MS) meta += " · " + t("gps.ageValue", { age: (age / 1000).toFixed(1) });
-        els.gpsMeta.textContent = meta;
       }
     }
     if (els.gpsRetry) els.gpsRetry.disabled = !g.supported;
@@ -2043,7 +2045,6 @@
       els.stopBtn.hidden = state.engine === "off";
       els.stopBtn.disabled = state.engine === "stopping";
     }
-    if (els.panicBtn) els.panicBtn.hidden = state.engine === "off";
 
     if (els.presetTabs) els.presetTabs.classList.toggle("locked", state.engine !== "off");
 
@@ -2440,12 +2441,12 @@
       modeUnlock: byId("modeUnlock"),
       startBtn: byId("startBtn"),
       stopBtn: byId("stopBtn"),
-      panicBtn: byId("panicBtn"),
       gpsPanel: byId("gpsPanel"),
       gpsState: byId("gpsState"),
       gpsSpeed: byId("gpsSpeed"),
-      gpsAccuracy: byId("gpsAccuracy"),
       gpsMeta: byId("gpsMeta"),
+      gpsMetaLine1: byId("gpsMetaLine1"),
+      gpsMetaLine2: byId("gpsMetaLine2"),
       gpsRetry: byId("gpsRetry"),
       gpsBadge: byId("gpsBadge"),
       speedSource: byId("speedSource"),
@@ -2512,7 +2513,6 @@
     if (els.overlayDemo) els.overlayDemo.addEventListener("click", function () { startEngine("demo"); });
     if (els.startBtn) els.startBtn.addEventListener("click", function () { startEngine("gps"); });
     if (els.stopBtn) els.stopBtn.addEventListener("click", stopEngine);
-    if (els.panicBtn) els.panicBtn.addEventListener("click", stopEngine);
 
     if (els.presetTabs) {
       els.presetTabs.addEventListener("click", function (event) {
