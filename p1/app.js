@@ -46,7 +46,7 @@
         torque: 620,
         torqueRpm: 4600,
         shiftUp: 6600,
-        shiftDown: 2200,
+        shiftDown: 1800,
         launchRpm: 2200,
         drag: 0.65,
         rolling: 0.012,
@@ -84,7 +84,7 @@
         torque: 380,
         torqueRpm: 3200,
         shiftUp: 6200,
-        shiftDown: 2000,
+        shiftDown: 1800,
         launchRpm: 2600,
         drag: 0.62,
         rolling: 0.012,
@@ -122,7 +122,7 @@
         torque: 500,
         torqueRpm: 4000,
         shiftUp: 7000,
-        shiftDown: 2200,
+        shiftDown: 1800,
         launchRpm: 2200,
         drag: 0.63,
         rolling: 0.012,
@@ -160,7 +160,7 @@
         torque: 520,
         torqueRpm: 15000,
         shiftUp: 17000,
-        shiftDown: 8500,
+        shiftDown: 4000,
         launchRpm: 12000,
         drag: 0.55,
         rolling: 0.012,
@@ -198,7 +198,7 @@
         torque: 690,
         torqueRpm: 5500,
         shiftUp: 8200,
-        shiftDown: 3000,
+        shiftDown: 2000,
         launchRpm: 3000,
         drag: 0.6,
         rolling: 0.012,
@@ -236,7 +236,7 @@
         torque: 330,
         torqueRpm: 4500,
         shiftUp: 7800,
-        shiftDown: 2800,
+        shiftDown: 2000,
         launchRpm: 4000,
         drag: 0.6,
         rolling: 0.012,
@@ -1163,11 +1163,12 @@
     var cfg = state.preset.drive;
     var lo = Math.max(1000, state.preset.redline * 0.25);
     if (speed < 0.5) return 1;
+    var best = 1;
     for (var g = 1; g <= cfg.gears.length; g++) {
       var rpm = rpmFromSpeed(speed, g, cfg);
-      if (rpm >= lo && rpm <= cfg.shiftUp * 0.85) return g;
+      if (rpm >= lo && rpm <= cfg.shiftUp * 0.85) best = g;
     }
-    return cfg.gears.length;
+    return best;
   }
 
   function torqueCurve(rpm, peakRpm) {
@@ -1429,13 +1430,12 @@
     var cfg = state.preset.drive;
     var lo = state.preset.redline * 0.28;
     var hi = state.preset.redline * 0.62;
-    var fallback = 1;
+    var best = 1;
     for (var g = 1; g <= cfg.gears.length; g++) {
       var rpm = rpmFromSpeed(speedMps, g, cfg);
-      if (rpm >= lo && rpm <= hi) return g;
-      if (rpm < lo) fallback = g;
+      if (rpm >= lo && rpm <= hi) best = g;
     }
-    return fallback;
+    return best;
   }
 
   function updateGpsDrive(dt, now) {
@@ -1498,8 +1498,9 @@
       var rpmWheel = rpmFromSpeed(d.speed, d.gear, cfg);
       if (d.shiftTimer <= 0) {
         var loadForShift = clamp(0.35 + Math.max(g.accelSmooth, 0) * 0.3, 0, 1);
-        var upRpm = cfg.shiftUp * (0.55 + 0.45 * loadForShift);
-        var downRpm = cfg.shiftDown;
+        var upRpm = Math.max(2200, cfg.shiftUp * (0.28 + 0.10 * loadForShift));
+        // Keep downshift well below the next upshift point to avoid gear hunting.
+        var downRpm = Math.min(cfg.shiftDown, upRpm * 0.58);
         if (rpmWheel > upRpm && d.gear < cfg.gears.length && d.shiftCooldown <= 0) {
           d.gear += 1;
           d.shiftTimer = 0.16;
@@ -1753,15 +1754,16 @@
         d.speed = clamp(d.speed + accel * dt, 0, cfg.topKmh / 3.6);
 
         var shiftUpNow = Math.max(
-          2800,
-          cfg.shiftUp * (0.55 + 0.45 * Math.min(1, d.throttle + 0.12))
+          2200,
+          cfg.shiftUp * (0.38 + 0.34 * Math.min(1, d.throttle + 0.10))
         );
+        var shiftDownNow = Math.min(cfg.shiftDown, shiftUpNow * 0.58);
         if (d.rpm > shiftUpNow && d.gear < cfg.gears.length && d.shiftCooldown <= 0) {
           d.gear += 1;
           d.shiftTimer = 0.18;
           d.shiftCooldown = 0.65;
           d.load = 0;
-        } else if (d.rpm < cfg.shiftDown && d.gear > 1 && d.shiftCooldown <= 0) {
+        } else if (d.rpm < shiftDownNow && d.gear > 1 && d.shiftCooldown <= 0) {
           d.gear -= 1;
           d.shiftTimer = 0.12;
           d.shiftCooldown = 0.55;
