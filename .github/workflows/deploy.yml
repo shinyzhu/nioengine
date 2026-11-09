@@ -5,7 +5,7 @@ on:
     branches:
       - main
     paths:
-      - 'p2-probe/**'
+      - 'p1/**'
       - '.github/workflows/deploy-p2.yml'
   workflow_dispatch:
 
@@ -31,8 +31,8 @@ jobs:
       - name: Install dependencies
         run: npm install --no-audit --no-fund
 
-      - name: Build P2 dist
-        run: npm run build:p2
+      - name: Build P1 dist
+        run: npm run build:p1
 
       - name: Prepare SSH key
         shell: bash
@@ -50,17 +50,8 @@ jobs:
           test -n "$DEPLOY_USER"
           rsync -avz --delete \
             -e "ssh -i ~/.ssh/id_ed25519 -o StrictHostKeyChecking=no" \
-            p2-probe/dist/ \
+            p1/dist/ \
             "$DEPLOY_USER@$DEPLOY_HOST:$DEPLOY_PATH/"
-
-      - name: Reload nginx
-        if: ${{ env.DEPLOY_RELOAD_NGINX == 'true' }}
-        shell: bash
-        run: |
-          ssh -i ~/.ssh/id_ed25519 \
-            -o StrictHostKeyChecking=no \
-            "$DEPLOY_USER@$DEPLOY_HOST" \
-            "sudo systemctl reload nginx"
 
       - name: Cleanup SSH key
         if: always()
