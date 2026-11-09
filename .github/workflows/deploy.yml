@@ -1,4 +1,4 @@
-name: Deploy domestic site (nioengine.cn)
+name: Deploy domestic site
 
 on:
   push:
@@ -23,7 +23,6 @@ jobs:
       DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
       DEPLOY_USER: ${{ secrets.DEPLOY_USER }}
       DEPLOY_PATH: /var/www/nioengine.cn
-      DEPLOY_RELOAD_NGINX: ${{ secrets.DEPLOY_RELOAD_NGINX }}
 
     steps:
       - name: Checkout repository
