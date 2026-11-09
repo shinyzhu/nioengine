@@ -1,4 +1,4 @@
-name: Deploy P2 dist
+name: Deploy domestic site (nioengine.cn)
 
 on:
   push:
@@ -6,7 +6,13 @@ on:
       - main
     paths:
       - 'p1/**'
-      - '.github/workflows/deploy-p2.yml'
+      - 'p2-probe/**'
+      - 'p2-bridge/**'
+      - 'src/**'
+      - 'build.mjs'
+      - 'scripts/**'
+      - 'package.json'
+      - '.github/workflows/deploy.yml'
   workflow_dispatch:
 
 jobs:
@@ -31,8 +37,20 @@ jobs:
       - name: Install dependencies
         run: npm install --no-audit --no-fund
 
-      - name: Build P1 dist
-        run: npm run build:p1
+      - name: Build all apps for domestic deployment
+        env:
+          P1_ICP: 沪ICP备2026059246号
+        run: npm run build:all
+
+      - name: Verify domestic artifacts
+        shell: bash
+        run: |
+          test -f public/index.html
+          test -f public/engine-worklet.js
+          test -f public/p0/index.html
+          test -f public/sensors/index.html
+          test -f public/bridge/index.html
+          grep -q '沪ICP备2026059246号' public/index.html
 
       - name: Prepare SSH key
         shell: bash
@@ -43,14 +61,14 @@ jobs:
           chmod 600 ~/.ssh/id_ed25519
           ssh-keyscan -H "$DEPLOY_HOST" >> ~/.ssh/known_hosts 2>/dev/null
 
-      - name: Deploy to remote nginx docroot
+      - name: Deploy all apps to remote nginx docroot
         shell: bash
         run: |
           test -n "$DEPLOY_HOST"
           test -n "$DEPLOY_USER"
           rsync -avz --delete \
             -e "ssh -i ~/.ssh/id_ed25519 -o StrictHostKeyChecking=no" \
-            p1/dist/ \
+            public/ \
             "$DEPLOY_USER@$DEPLOY_HOST:$DEPLOY_PATH/"
 
       - name: Cleanup SSH key

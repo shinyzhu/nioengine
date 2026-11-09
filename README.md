@@ -63,7 +63,19 @@ Cloudflare 里连接 GitHub 后：
 
 完整步骤（Git 连接、自定义域名、排错）见 **[docs/cloudflare-worker-deploy.md](docs/cloudflare-worker-deploy.md)**。
 
-#### 方式 B：普通静态托管
+#### 方式 B：国内 nioengine.cn（GitHub Actions）
+
+国内服务器由 [`.github/workflows/deploy.yml`](.github/workflows/deploy.yml) 部署：
+
+- 触发：`main` 分支的 P1 / P0 / P2.0 / P2.2 源文件变化，或手动 `workflow_dispatch`；
+- 构建：`npm run build:all`；
+- 构建时注入 `P1_ICP=沪ICP备2026059246号`，**只在 P1 的版本号后追加备案号**；
+- 产物：整个 `public/`（`/`、`/p0/`、`/sensors/`、`/bridge/`）；
+- 目标：`/var/www/nioengine.cn`。
+
+Cloudflare 构建不设置 `P1_ICP`，所以海外版本 P1 版本号保持纯版本号。
+
+#### 方式 C：其他静态托管（仅 P1）
 
 把 `p1/dist/index.html` 和 `p1/dist/engine-worklet.js` 上传到同一个 HTTPS 目录，`.js` MIME 为 `application/javascript`。操作、架构和真车测试清单见 **[p1/README.md](p1/README.md)**。
 

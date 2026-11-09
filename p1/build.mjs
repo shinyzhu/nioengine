@@ -4,7 +4,9 @@ import { fileURLToPath } from "node:url";
 
 const here = dirname(fileURLToPath(import.meta.url));
 const dist = join(here, "dist");
-const version = "0.9.0";
+const versionBase = "0.9.0";
+const icp = (process.env.P1_ICP || "").trim();
+const version = icp ? `${versionBase} · ${icp}` : versionBase;
 const buildTime = new Date().toISOString();
 
 mkdirSync(dist, { recursive: true });
