@@ -17,6 +17,7 @@ jobs:
       DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
       DEPLOY_USER: ${{ secrets.DEPLOY_USER }}
       DEPLOY_PATH: /var/www/nioengine.cn
+      DEPLOY_RELOAD_NGINX: ${{ secrets.DEPLOY_RELOAD_NGINX }}
 
     steps:
       - name: Checkout repository
@@ -54,7 +55,7 @@ jobs:
             "$DEPLOY_USER@$DEPLOY_HOST:$DEPLOY_PATH/"
 
       - name: Reload nginx
-        if: ${{ secrets.DEPLOY_RELOAD_NGINX == 'true' }}
+        if: ${{ env.DEPLOY_RELOAD_NGINX == 'true' }}
         shell: bash
         run: |
           ssh -i ~/.ssh/id_ed25519 \
