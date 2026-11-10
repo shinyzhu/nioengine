@@ -36,7 +36,7 @@
       subRatio: 0.5,
       subGain: 0.025,
       intakeGain: 0.4,
-      crackle: 0.6,
+      crackle: 0.3,
       turbo: false,
       drive: {
         gears: [3.6, 2.2, 1.55, 1.2, 0.97, 0.8],
@@ -74,7 +74,7 @@
       subRatio: 1.0,
       subGain: 0.018,
       intakeGain: 0.5,
-      crackle: 1.2,
+      crackle: 0.55,
       turbo: true,
       drive: {
         gears: [3.5, 2.1, 1.5, 1.15, 0.9, 0.75],
@@ -112,7 +112,7 @@
       subRatio: 1.0,
       subGain: 0.02,
       intakeGain: 0.35,
-      crackle: 0.4,
+      crackle: 0.22,
       turbo: false,
       drive: {
         gears: [3.4, 2.1, 1.55, 1.2, 0.95, 0.78, 0.65],
@@ -150,7 +150,7 @@
       subRatio: 0.5,
       subGain: 0.008,
       intakeGain: 1.3,
-      crackle: 1.0,
+      crackle: 0.45,
       turbo: false,
       drive: {
         gears: [3.2, 2.45, 1.95, 1.6, 1.35, 1.15, 1.0, 0.88],
@@ -188,7 +188,7 @@
       subRatio: 0.5,
       subGain: 0.015,
       intakeGain: 0.7,
-      crackle: 0.85,
+      crackle: 0.4,
       turbo: false,
       drive: {
         gears: [3.9, 2.45, 1.8, 1.42, 1.18, 0.97, 0.84],
@@ -226,7 +226,7 @@
       subRatio: 0.5,
       subGain: 0.014,
       intakeGain: 1.15,
-      crackle: 1.4,
+      crackle: 0.6,
       turbo: true,
       drive: {
         gears: [3.4, 2.1, 1.5, 1.15, 0.9, 0.75],
@@ -1878,6 +1878,11 @@
     state.lastControl = now;
     var d = state.drive;
     var cut = d.shiftTimer > 0 || d.limiterCut;
+    var decel = d.accel || 0;
+    var crackleScale = 1;
+    if (d.brake > 0.08 || decel < -1.8) crackleScale = 0.08;
+    else if (d.brake > 0.02 || decel < -0.8) crackleScale = 0.28;
+    else if (decel < -0.25) crackleScale = 0.55;
     try {
       state.worklet.port.postMessage({
         type: "control",
@@ -1887,7 +1892,8 @@
         boost: d.boost,
         gear: d.gear,
         valve: state.valve,
-        cut: cut
+        cut: cut,
+        crackleScale: crackleScale
       });
     } catch (err) { /* ignore */ }
   }

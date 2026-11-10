@@ -41,6 +41,7 @@ class EngineP1Processor extends AudioWorkletProcessor {
     this.clickEnv = [0, 0];
     this.bankLp = [0, 0];
     this.cutTimer = 0;
+    this.crackleScale = 1;
     this.prevCut = false;
     this.fuelCut = false;
     this.limiterPhase = 0;
@@ -109,6 +110,7 @@ class EngineP1Processor extends AudioWorkletProcessor {
         this.turboPhase = 0;
         this.limiterPhase = 0;
         this.cutTimer = 0;
+        this.crackleScale = 1;
         this.prevCut = false;
         this.fuelCut = false;
         this.resetFilters();
@@ -139,10 +141,11 @@ class EngineP1Processor extends AudioWorkletProcessor {
           if (typeof msg.boost === "number") this.targetBoost = clamp(msg.boost, 0, 1);
           if (typeof msg.valve === "number") this.targetValve = clamp(msg.valve, 0, 1);
           if (typeof msg.gear === "number") this.gear = msg.gear;
+          if (typeof msg.crackleScale === "number") this.crackleScale = clamp(msg.crackleScale, 0, 1);
 
           if (cut && !this.prevCut) {
             this.cutTimer = Math.max(this.cutTimer, 0.12);
-            this.popEnv = Math.max(this.popEnv, 0.55);
+            this.popEnv = Math.max(this.popEnv, 0.30 * this.crackleScale);
           }
         }
         this.prevCut = cut;
@@ -366,10 +369,10 @@ class EngineP1Processor extends AudioWorkletProcessor {
         // Overrun crackle / shift pop.
         this.popEnv *= popDecay;
         this.popPhase += (2 * Math.PI * 70) / sr;
-        var pop = white * this.popEnv * 0.35 + Math.sin(this.popPhase) * this.popEnv * 0.18;
+        var pop = white * this.popEnv * 0.30 + Math.sin(this.popPhase) * this.popEnv * 0.14;
 
         var macro = 1.05 + this.load * 0.55 + this.valve * 0.18;
-        var center = intake * 0.55 + turbo + sub * 0.55 + starter + runDown + pop * 0.7;
+        var center = intake * 0.55 + turbo + sub * 0.55 + starter + runDown + pop * 0.45;
         var mixL = (exL * 0.86 + exR * 0.14) * macro + center;
         var mixR = (exR * 0.86 + exL * 0.14) * macro + center;
 
@@ -456,15 +459,15 @@ class EngineP1Processor extends AudioWorkletProcessor {
 
     var overrunFloor = Math.max(2200, this.idle * 1.35);
     var overrun = this.throttle < 0.08 && this.rpm > overrunFloor && this.load < 0.12;
-    if (overrun && this.mode === "running") {
+    if (overrun && this.crackleScale > 0.03 && this.mode === "running") {
       this.popTimer -= dt;
       if (this.popTimer <= 0) {
-        var crackle = this.config.crackle || 0.6;
-        this.popTimer = 0.035 + Math.random() * (0.16 / Math.max(0.2, crackle));
-        this.popEnv = Math.max(this.popEnv, (0.25 + Math.random() * 0.45) * crackle);
+        var crackle = (this.config.crackle || 0.3) * this.crackleScale;
+        this.popTimer = 0.08 + Math.random() * (0.30 / Math.max(0.15, crackle));
+        this.popEnv = Math.max(this.popEnv, (0.10 + Math.random() * 0.22) * crackle);
         this.popPhase = Math.random() * Math.PI * 2;
         var b = Math.random() < 0.5 ? 0 : 1;
-        this.bankImpulse[b] += 0.05 + Math.random() * 0.08;
+        this.bankImpulse[b] += (0.025 + Math.random() * 0.04) * (0.4 + 0.6 * this.crackleScale);
       }
     } else {
       this.popTimer = 0;
@@ -533,7 +536,7 @@ function defaultConfig() {
     subRatio: 0.5,
     subGain: 0.025,
     intakeGain: 0.4,
-    crackle: 0.6,
+    crackle: 0.3,
     turbo: false
   };
 }
