@@ -84,6 +84,8 @@ server {
 
 > GPS 模式需要 HTTPS 和位置权限。首次进入会弹权限；如果没有弹窗，点 GPS 面板里的“重新连接 GPS”。启动按钮在启动页和熄火后的左侧面板都有脉冲高亮。
 
+> 部署排查：如果新域名打开直接提示“GPS 权限被拒绝”且没有系统弹窗，检查 Nginx 是否发送了 `Permissions-Policy: geolocation=()`。这会禁用整个页面的定位能力，清理浏览器缓存没有用；应改为 `Permissions-Policy: geolocation=(self), microphone=(), camera=()`，然后 reload Nginx。
+
 驾驶舱：
 
 | 区域 | 操作 |

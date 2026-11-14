@@ -75,6 +75,8 @@ Cloudflare 里连接 GitHub 后：
 
 Cloudflare 构建不设置 `P1_ICP`，所以海外版本 P1 版本号保持纯版本号。
 
+> **GPS 权限注意**：国内 Nginx 不要发送 `Permissions-Policy: geolocation=()`，否则浏览器会在弹权限前直接拒绝定位，清缓存无效。应使用 `Permissions-Policy: geolocation=(self), microphone=(), camera=()`，或删除 geolocation 限制。
+
 #### 方式 C：其他静态托管（仅 P1）
 
 把 `p1/dist/index.html` 和 `p1/dist/engine-worklet.js` 上传到同一个 HTTPS 目录，`.js` MIME 为 `application/javascript`。操作、架构和真车测试清单见 **[p1/README.md](p1/README.md)**。
